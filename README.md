@@ -1,4 +1,4 @@
-# dcc-api
+# ts-express
 
 This project was generated with express(4.18.1) + typescript.
 
