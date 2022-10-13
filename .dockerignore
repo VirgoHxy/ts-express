@@ -1,0 +1,9 @@
+.vscode
+node_modules
+
+.editorconfig
+.eslintignore
+.eslintrc
+.nycrc
+.prettierignore
+.prettierrc
