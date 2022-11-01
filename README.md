@@ -46,7 +46,7 @@ import { Configuration, PingApi } from './sdk';
 
 // 这个config是公共的 作用于所有api
 const config = new Configuration({
-  basePath: 'http://localhost:3001',
+  basePath: 'http://localhost:3000',
 });
 
 class Test {
