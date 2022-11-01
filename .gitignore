@@ -4,6 +4,7 @@
 
 # compiled output
 /dist
+/sdk
 /tmp
 /out-tsc
 

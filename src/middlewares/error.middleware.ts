@@ -1,15 +1,17 @@
+import { FailedResult, HttpException } from '@others';
+import { loggerInstance } from '@plugins';
 import { NextFunction, Request, Response } from 'express';
-import { HttpException } from '../others';
-import { logger } from '../plugins';
 
-export const errorMiddleware = (error: HttpException, req: Request, res: Response, next: NextFunction) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const errorMiddleware = (err: HttpException, req: Request, res: Response, _next: NextFunction) => {
   try {
-    const status: number = error.status || 500;
-    const message: string = error.message || 'Something went wrong';
-
+    const logger = loggerInstance.getLogger('error_middleware');
+    const status: number = err.status || 500;
+    const message: string = err.message || 'Something went wrong';
+    console.log(err);
     logger.error(`[${req.method}] ${req.path} >> StatusCode:: ${status}, Message:: ${message}`);
-    res.status(status).json({ message });
+    res.status(status).json(new FailedResult(err));
   } catch (error) {
-    next(error);
+    res.status(500).json(new FailedResult(error));
   }
 };

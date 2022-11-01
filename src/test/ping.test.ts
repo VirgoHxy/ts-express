@@ -11,7 +11,7 @@ describe('express api test', () => {
         .get('/ping')
         .expect(200)
         .end(function (error, res) {
-          res.text.should.equal('OK');
+          res.body.should.equal('OK');
           if (error) throw error;
           done();
         });

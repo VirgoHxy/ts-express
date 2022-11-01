@@ -1,0 +1,11 @@
+{
+  "port": 3001,
+  "debug": true,
+  "origin": "*",
+  "morgan_format": "tiny",
+  "jwt": {
+    "expiresIn": 86400,
+    "secret": "your-256-bit-secret",
+    "algorithm": "HS256"
+  }
+}

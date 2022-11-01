@@ -21,13 +21,14 @@
     "importHelpers": true,
     "baseUrl": "src",
     "paths": {
-      "@/*": ["*"],
+      "@config": ["config/index"],
+      "@interfaces": ["interfaces/index"],
+      "@others": ["others/index"],
+      "@plugins": ["plugins/index"],
       "@config/*": ["config/*"],
       "@interfaces/*": ["interfaces/*"],
-      "@models/*": ["models/*"],
       "@others/*": ["others/*"],
-      "@plugins/*": ["plugins/*"],
-      "@services/*": ["services/*"]
+      "@plugins/*": ["plugins/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.json"],

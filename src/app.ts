@@ -3,42 +3,60 @@ import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import express from 'express';
+import { writeFile } from 'fs';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import morgan from 'morgan';
-import { getMetadataArgsStorage, useExpressServer } from 'routing-controllers';
+import path from 'path';
+import 'reflect-metadata';
+import { getMetadataArgsStorage, useContainer, useExpressServer } from 'routing-controllers';
 import { routingControllersToSpec } from 'routing-controllers-openapi';
 import serveStatic from 'serve-static';
 import swaggerUi from 'swagger-ui-express';
+import Container from 'typedi';
 import { appConfig } from './config';
 import * as controllers from './controllers';
+import { initDataSource } from './datasources';
 import { errorMiddleware } from './middlewares';
-import { logger, loggerInstance } from './plugins';
+import { loggerInstance } from './plugins';
 
-class App {
+export default class App {
   public static instance = new App();
   public app: express.Application;
   private port = appConfig.port || 3000;
+  private logger = loggerInstance.getLogger('app');
 
   constructor() {
     const controllersArr = Object.values(controllers).map(ele => ele);
-    loggerInstance.setLabelWithFile('app');
 
     this.app = express();
 
+    this.set();
     this.initMiddlewares();
-    this.initPublicFolder();
     this.initRoutes(controllersArr);
     this.initSwagger(controllersArr);
+    // 错误处理必须要放在最后use
     this.initErrorHandling();
   }
 
-  public run() {
+  public async run() {
+    await this.asyncSet();
     this.app.listen(this.port, () => {
       const url = `http://127.0.0.1:${this.port}`;
-      logger.info(`Server is running at ${url}`);
-      logger.info(`Try ${url}/ping`);
+      this.logger.info(`Server is running at ${url}`);
+      this.logger.info(`Try ${url}/ping`);
     });
+  }
+
+  private set() {
+    this.app.use(serveStatic('public', { index: ['index.html'] }));
+    // 使用依赖注入
+    useContainer(Container);
+  }
+
+  private async asyncSet() {
+    // 初始化数据库
+    await initDataSource();
   }
 
   private initMiddlewares() {
@@ -46,7 +64,7 @@ class App {
     this.app.use(
       morgan(appConfig.morgan_format, {
         skip(req, res) {
-          if (req.baseUrl === '/api-docs' || req.path === '/') {
+          if (req.baseUrl === '/api-docs' || req.path === '/' || req.path === '/favicon.ico') {
             return true;
           } else if (res.statusCode === 200) {
             return true;
@@ -54,7 +72,7 @@ class App {
         },
         stream: {
           write: (message: string) => {
-            logger.info(message.substring(0, message.lastIndexOf('\n')));
+            this.logger.info(message.substring(0, message.lastIndexOf('\n')));
           },
         },
       }),
@@ -72,10 +90,8 @@ class App {
     this.app.use(express.urlencoded({ extended: true }));
     // req.cookies
     this.app.use(cookieParser());
-  }
-
-  private initPublicFolder() {
-    this.app.use(serveStatic('public', { index: ['index.html'] }));
+    // 统一成功响应体
+    // this.app.use(resultMiddleware);
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -103,6 +119,11 @@ class App {
 
     const storage = getMetadataArgsStorage();
     const spec = routingControllersToSpec(storage, routingControllersOptions, {
+      info: {
+        description: 'Generated with `routing-controllers-openapi`',
+        title: 'API',
+        version: '1.0.0',
+      },
       components: {
         schemas,
         securitySchemes: {
@@ -112,19 +133,20 @@ class App {
           },
         },
       },
-      info: {
-        description: 'Generated with `routing-controllers-openapi`',
-        title: 'API',
-        version: '1.0.0',
-      },
+      servers: [{ url: `http://[::1]:${appConfig.port}/` }],
     });
-
+    writeFile(path.resolve(__dirname, '../public/openapi.json'), JSON.stringify(spec), error => {
+      if (error) {
+        this.logger.warn(error);
+      }
+    });
     this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(spec));
+    this.app.use('/openapi.json', (_req, res) => {
+      res.send(spec);
+    });
   }
 
   private initErrorHandling() {
     this.app.use(errorMiddleware);
   }
 }
-
-export default App;

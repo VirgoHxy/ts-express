@@ -1,2 +1,4 @@
 /dist
+/sdk
 /src/test
+/src/migrations

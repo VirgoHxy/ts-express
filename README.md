@@ -34,14 +34,73 @@ npm run build
 
 Open dist folder in your file system to check output.
 
-## Fix code style and formatting issues
+## Build the api by openapi-axios
+
+```
+npm run build:sdk
+```
+
+```typescript
+// 测试api用例
+import { Configuration, PingApi } from './sdk';
+
+// 这个config是公共的 作用于所有api
+const config = new Configuration({
+  basePath: 'http://localhost:3001',
+});
+
+class Test {
+  static instance = new Test();
+
+  constructor(private pingApi: PingApi = new PingApi(config)) {
+    this.init();
+  }
+
+  async init() {
+    try {
+      const result = await this.pingApi.pingControllerPing();
+      console.log(result.data);
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+}
+```
+
+## Lint code style and formatting issues
 
 ```
 npm run lint
+```
+
+## Fix code style and formatting issues
+
+```
+npm run lint:fix
 ```
 
 ## Run the test
 
 ```
 npm run test
+```
+
+## Generate/Run/Revert the migrations
+
+### generate
+
+```
+npm run typeorm:g
+```
+
+#### run
+
+```
+npm run typeorm:s
+```
+
+#### revert
+
+```
+npm run typeorm:r
 ```
