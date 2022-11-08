@@ -4,8 +4,6 @@
 
 - 使用 typedi 依赖注入问题 -- 即使没有用 DI，也需要在头部添加`@Service()`
   - 不需要使用依赖注入的 controller 报错`Service with "MaybeConstructable<XXXController>" identifier was not found in the container. Register it before usage via explicitly calling the "Container.set" function or using the "@Service()" decorator`
-- typeorm 问题
-  - 自定义扩展过的仓库无法使用事务，因为扩展仓库上的方法并没有定义在 EntityManager 上
 
 ## solved question list
 
@@ -19,6 +17,26 @@
 - openapip-generator 生成 axios 问题
   - 如何设置 basepath -- openapi.json 需要有 `"servers": [{ "url": "http://[::1]:3000/" }]`
   - controller 层不要使用 options 会默认在 controller 加一个 options 的参数用于 axios
+- controller 的接口顺序问题
+  - @Get('/records/:id')
+  - @Patch('/records/:id')
+  - @Delete('/records/:id')
+  - 这三个接口会模糊匹配请求路径，当你的另一个接口，例如：@Get('/records/like')放在@Get('/records/:id')后面，这个 like 接口是不会被匹配到的。所以尽量不使用 Get，Patch，Delete 的`/records/xxx`的格式，如果要用请放在这三个接口的前面。
+- typeorm 问题
+  - 自定义扩展过的仓库无法使用事务，因为扩展仓库上的方法并没有定义在 EntityManager 上
+  - EntityManager 增加自定义 exist 和 existOrFail 方法，并修改自定义仓库的 EntityManager
+- 为什么要新创建一个 class 来使用 DTO，而不是使用 interface 和 entity
+  - interface 因为在编译过程中是被删除的，也无法在 interface 上添加 swagger 的装饰器
+  - entity 是因为单一性原则，每个类有自己不同的职种，entity 只负责与数据库模型对应，dto 负责每个传参的含义、类型以及是否必传（待考虑）
+  - 个人觉得，以下通用接口可以使用 entity 方式，并通过分组添加不同的规则，而和业务更相关的接口可以使用 dto，可以灵活应对业务需求可能频繁变更
+    - find
+    - count
+    - findById
+    - updateById
+    - deleteById
+    - update
+    - create
+    - upsert
 
 ## to-do list
 
