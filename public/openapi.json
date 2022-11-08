@@ -135,9 +135,7 @@
         "parameters": [{ "in": "query", "name": "opt", "required": false, "schema": {} }],
         "responses": {
           "200": {
-            "content": {
-              "application/json": { "schema": { "items": { "$ref": "#/components/schemas/Record" }, "type": "array" } }
-            },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Number" } } },
             "description": ""
           }
         },
@@ -148,7 +146,10 @@
     "/records/{id}": {
       "get": {
         "operationId": "RecordController.findById",
-        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "number" } }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "number" } },
+          { "in": "query", "name": "opt", "required": false, "schema": {} }
+        ],
         "responses": {
           "200": {
             "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Record" } } },
@@ -191,7 +192,7 @@
         "tags": ["Record"]
       }
     },
-    "/records/like": {
+    "/recordsByLike": {
       "get": {
         "operationId": "RecordController.getRecordsByLike",
         "parameters": [
