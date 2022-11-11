@@ -11,9 +11,9 @@
     "lint": "eslint --ignore-path .eslintignore ./src",
     "lint:fix": "eslint --ignore-path .eslintignore ./src --fix",
     "test": "nyc --reporter=lcov mocha --require ts-node/register ./src/test/*.test.ts",
-    "typeorm:g": "npx typeorm-ts-node-esm migration:generate ./src/migrations/mysql/migration -d ./src/datasources/mysql.datasource.ts",
-    "typeorm:s": "npx typeorm-ts-node-esm migration:run -d ./src/datasources/mysql.datasource.ts",
-    "typeorm:r": "npx typeorm-ts-node-esm migration:revert -d ./src/datasources/mysql.datasource.ts"
+    "migrate:g": "npx typeorm-ts-node-esm migration:generate ./src/migrations/mysql/migration -d ./src/datasources/mysql.datasource.ts",
+    "migrate:s": "npx typeorm-ts-node-esm migration:run -d ./src/datasources/mysql.datasource.ts",
+    "migrate:r": "npx typeorm-ts-node-esm migration:revert -d ./src/datasources/mysql.datasource.ts"
   },
   "author": "",
   "license": "ISC",

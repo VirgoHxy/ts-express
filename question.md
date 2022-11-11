@@ -63,7 +63,7 @@
     - 方案 2:
       - 使用 `import XXXEntity` + `entities: [XXXEntity]`
   - synchronize 和 migrationsRun 两个配置需要小心配置，分别是启动项目就自动生成数据库架构和启动项目就自动生成数据库迁移
-  - 增加 migration 的 npm-script，用来生成(`npm run typeorm:g`)、运行(`npm run typeorm:s`)、重置(`npm run typeorm:r`)migration，重置如果涉及删除表或者操作表数据操作，请谨慎使用，数据被删除将无法恢复
+  - 增加 migration 的 npm-script，用来生成(`npm run migrate:g`)、运行(`npm run migrate:s`)、重置(`npm run migrate:r`)migration，重置如果涉及删除表或者操作表数据操作，请谨慎使用，数据被删除将无法恢复
 - 权限的中间件
 - 引入 jwt
 - 结果和报错做统一处理

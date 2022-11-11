@@ -7,7 +7,7 @@ import { RecordRepository } from '../repositories';
 @Service()
 export class RecordService {
   constructor(@Service() private recordRepository: RecordRepository) {}
-  async getRecordsByLike(params: GetRecordsTestDto) {
+  async getByLike(params: GetRecordsTestDto) {
     const builder = this.recordRepository.createQueryBuilder();
     if (params.content) builder.where('content like :content', { content: `%${params.content}%` });
     if (params.name) builder.andWhere('name like :name', { name: `%${params.name}%` });

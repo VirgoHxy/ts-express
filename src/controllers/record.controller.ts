@@ -20,7 +20,7 @@ import { authMiddleware, resultMiddleware, validationMiddleware } from '../middl
 import { RecordRepository } from '../repositories';
 import { RecordService } from '../services';
 
-@JsonController()
+@JsonController('records')
 @UseBefore(authMiddleware, resultMiddleware)
 export class RecordController {
   constructor(@Service() private recordService: RecordService, @Service() private recordRepository: RecordRepository) {}
@@ -29,7 +29,7 @@ export class RecordController {
   @ResponseSchema(Record, {
     isArray: true,
   })
-  @Get('/records')
+  @Get('/')
   async find(@QueryParam('opt') opt?: FindManyOptions<Record>): Promise<{ count: number; results: Record[] }> {
     const count = await this.recordRepository.count(opt);
     const results = await this.recordRepository.find(opt);
@@ -41,7 +41,7 @@ export class RecordController {
 
   @OpenAPI({ summary: 'Return a count of records by opt' })
   @ResponseSchema(Number)
-  @Get('/records/count')
+  @Get('/count')
   async count(@QueryParam('opt') opt?: FindOptionsWhere<Record>): Promise<number> {
     const count = await this.recordRepository.countBy(opt);
     return count;
@@ -49,7 +49,7 @@ export class RecordController {
 
   @OpenAPI({ summary: 'Return a record by id' })
   @ResponseSchema(Record)
-  @Get('/records/:id')
+  @Get('/:id')
   async findById(@Param('id') id: number, @QueryParam('opt') opt?: FindOptionsWhere<Record>): Promise<Record> {
     await this.recordRepository.existOneOrFail({ id });
     const result = await this.recordRepository.findOne(Object.assign({ where: { id } }, opt));
@@ -59,7 +59,7 @@ export class RecordController {
   @OpenAPI({ summary: 'Update a record by id' })
   @HttpCode(204)
   @UseBefore(validationMiddleware(Record, 'body', ['update']))
-  @Patch('/records/:id')
+  @Patch('/:id')
   async updateById(@Param('id') id: number, @Body() body: Record): Promise<null> {
     await this.recordRepository.existOneOrFail(id);
     await this.recordRepository.update(id, body);
@@ -68,7 +68,7 @@ export class RecordController {
 
   @OpenAPI({ summary: 'Delete a record by id' })
   @HttpCode(204)
-  @Delete('/records/:id')
+  @Delete('/:id')
   async deleteById(@Param('id') id: number): Promise<null> {
     await this.recordRepository.delete(id);
     return null;
@@ -77,7 +77,7 @@ export class RecordController {
   @OpenAPI({ summary: 'Update a record' })
   @HttpCode(204)
   @UseBefore(validationMiddleware(Record, 'body', ['update']))
-  @Patch('/records')
+  @Patch('/')
   async update(@QueryParam('opt') opt: FindOptionsWhere<Record>, @Body() body: Record): Promise<null> {
     await this.recordRepository.existOneOrFail(opt);
     await this.recordRepository.update(opt, body);
@@ -87,7 +87,7 @@ export class RecordController {
   @OpenAPI({ summary: 'Create a record' })
   @HttpCode(201)
   @UseBefore(validationMiddleware(Record, 'body', ['create']))
-  @Post('/records')
+  @Post('/')
   async create(@Body() body: Record): Promise<unknown> {
     await this.recordRepository.insert(body);
     return '';
@@ -96,7 +96,7 @@ export class RecordController {
   @OpenAPI({ summary: 'Upsert a record' })
   @HttpCode(204)
   @UseBefore(validationMiddleware(Record, 'body', ['upsert']))
-  @Post('/records/upsert')
+  @Post('/upsert')
   async upsert(@Body() body: Record[]): Promise<null> {
     await this.recordRepository.save(body);
     return null;
@@ -109,14 +109,14 @@ export class RecordController {
     isArray: true,
   })
   @UseBefore(validationMiddleware(GetRecordsTestDto, 'query'))
-  @Get('/recordsByLike')
-  async getRecordsByLike(@QueryParams() queryParams: GetRecordsTestDto): Promise<Record[]> {
-    return this.recordService.getRecordsByLike(queryParams);
+  @Get('/getByLike')
+  async getByLike(@QueryParams() queryParams: GetRecordsTestDto): Promise<Record[]> {
+    return this.recordService.getByLike(queryParams);
   }
 
   @OpenAPI({ summary: 'Delete a record and create a record' })
   @UseBefore(validationMiddleware(Record, 'body', ['create']))
-  @Post('/records/deleteAndCreate/:id')
+  @Post('/deleteAndCreate/:id')
   async deleteAndCreate(@Param('id') id: number, @Body() body: Record): Promise<string> {
     await this.recordService.deleteAndCreate(id, body);
     return 'Success';

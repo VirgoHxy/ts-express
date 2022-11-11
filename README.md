@@ -14,7 +14,9 @@ npm i
 npm start
 ```
 
-You can also execute `node .` to run the application.
+You can also execute `node .` to run the application. `node .` means run the file of package.json main property, `"main": "dist/server.js"`.
+
+`node .` -> `node dist/server.js`
 
 Open http://127.0.0.1:3000 in your browser.
 
@@ -90,17 +92,17 @@ npm run test
 ### generate
 
 ```
-npm run typeorm:g
+npm run migrate:g
 ```
 
 #### run
 
 ```
-npm run typeorm:s
+npm run migrate:s
 ```
 
 #### revert
 
 ```
-npm run typeorm:r
+npm run migrate:r
 ```
