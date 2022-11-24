@@ -4,6 +4,8 @@
 
 - 使用 typedi 依赖注入问题 -- 即使没有用 DI，也需要在头部添加`@Service()`
   - 不需要使用依赖注入的 controller 报错`Service with "MaybeConstructable<XXXController>" identifier was not found in the container. Register it before usage via explicitly calling the "Container.set" function or using the "@Service()" decorator`
+- routing-controllers-openapi 无法显示`@Body: Dto[]`这种数组形式的正常 schema，只能显示成`[{}]`
+- swagger 中 query 使用 object 类型，还必须要在对象值中再定义一次字段值，例如：`where`是个 object，值应该是`{"where": {}}`
 
 ## solved question list
 
@@ -11,17 +13,17 @@
 - 请求后报错 `Cannot set headers after they are sent to the client`，和 routing-controllers 包有关
   - 是因为 swagger 和 routing-controllers 有冲突，swagger 地址不能设置 `'/'`，或者 routing-controllers 需要升级到最新版
 - swagger 渲染参数问题
-  - entity 需要配置 class-validator
+  - entity 需要配置 class-validator 的注解
   - routing-controllers 的注解需要设置正确
 - express 204 状态码返回，在 controller 层还是需要 return，无论 return 什么返回给客户端都是 204，并且没有响应内容；如果`return null`会自动设置为 204
-- openapip-generator 生成 axios 问题
-  - 如何设置 basepath -- openapi.json 需要有 `"servers": [{ "url": "http://[::1]:3000/" }]`
-  - controller 层不要使用 options 会默认在 controller 加一个 options 的参数用于 axios
+- openapi-generator 生成 axios 问题
+  - 如何设置 basepath -- openapi.json 需要有 `"servers": [{ "url": "http://127.0.0.1:3000/" }]`
+  - controller 层不要使用 options 字段作为参数，openapi 默认在 controller 加一个 options 的参数用于 axios sdk
 - controller 的接口顺序问题
   - @Get('/records/:id')
   - @Patch('/records/:id')
   - @Delete('/records/:id')
-  - 这三个接口会模糊匹配请求路径，当你的另一个接口，例如：@Get('/records/like')放在@Get('/records/:id')后面，这个 like 接口是不会被匹配到的。所以尽量不使用 Get，Patch，Delete 的`/records/xxx`的格式，如果要用请放在这三个接口的前面。
+  - 这三个接口会模糊匹配请求路径，当你的另一个接口，例如：@Get('/records/like')放在@Get('/records/:id')后面，这个 like 接口是不会被匹配到的。所以尽量不使用 Get，Patch，Delete 的`/records/xxx`的格式，如果要用请放在这三个接口的前面，或者使用 Post Method。
 - typeorm 问题
   - 自定义扩展过的仓库无法使用事务，因为扩展仓库上的方法并没有定义在 EntityManager 上
   - EntityManager 增加自定义 exist 和 existOrFail 方法，并修改自定义仓库的 EntityManager
@@ -37,6 +39,8 @@
     - update
     - create
     - upsert
+- class-validator 验证中间件和 routing-controllers 的自动验证冲突 -- 需要去掉一个验证，这里选择去掉 routing-controllers，在验证中间件做统一处理，只需要在接受参数的装饰器中添加`{ validate: false }`
+- class-validator 无法正常校验数组 @ValidateNested 和 groups，只好改用循环使用 validate
 
 ## to-do list
 
@@ -46,6 +50,30 @@
 
 - controllers 自动化引入 -- 使用 `Object.values(controllers).map(ele => ele)` 和 controllers/index.ts
 - swagger -- express-ui + routing-controllers + routing-controllers-openapi + class-validator
+- swagger 运行正常
+
+  - 无法接收 swagger 的数组，只能收到一个数组元素
+  - interface 替换为 dto -- 已替换
+  - 无法发送 token 请求头 -- OpenAPIObject 加入下列配置
+
+    ```javascript
+      components: {
+        // 其他配置
+
+        // token配置
+        securitySchemes: {
+          bearerAuth: {
+            type: 'apiKey',
+            scheme: 'bearer',
+            in: 'header',
+            name: 'Authorization',
+          },
+        },
+      },
+      // token配置 这个一定要加
+      security: [{ bearerAuth: [] }],
+    ```
+
 - 可以访问 openapi.json
 - unit test -- mocha + should + supertest
 - 设置别名问题

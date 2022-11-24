@@ -4,33 +4,32 @@ import {
   Get,
   HttpCode,
   JsonController,
-  Param,
+  Params,
   Patch,
   Post,
-  QueryParam,
   QueryParams,
   UseBefore,
 } from 'routing-controllers';
 import { OpenAPI, ResponseSchema } from 'routing-controllers-openapi';
 import { Service } from 'typedi';
-import { FindManyOptions, FindOptionsWhere } from 'typeorm';
-import { GetRecordsTestDto } from '../dtos';
+import { FindManyOptionsDto, GetRecordsTestDto, RecordDto } from '../dtos';
 import { Record } from '../entities';
 import { authMiddleware, resultMiddleware, validationMiddleware } from '../middlewares';
 import { RecordRepository } from '../repositories';
 import { RecordService } from '../services';
 
-@JsonController('records')
+@JsonController('/records')
 @UseBefore(authMiddleware, resultMiddleware)
 export class RecordController {
   constructor(@Service() private recordService: RecordService, @Service() private recordRepository: RecordRepository) {}
 
   @OpenAPI({ summary: 'Return a list of records by opt' })
-  @ResponseSchema(Record, {
-    isArray: true,
-  })
+  @ResponseSchema(Record, { isArray: true })
+  @UseBefore(validationMiddleware(FindManyOptionsDto, 'query'))
   @Get('/')
-  async find(@QueryParam('opt') opt?: FindManyOptions<Record>): Promise<{ count: number; results: Record[] }> {
+  async find(
+    @QueryParams({ validate: false }) opt?: FindManyOptionsDto<Record>,
+  ): Promise<{ count: number; results: Record[] }> {
     const count = await this.recordRepository.count(opt);
     const results = await this.recordRepository.find(opt);
     return {
@@ -39,86 +38,101 @@ export class RecordController {
     };
   }
 
-  @OpenAPI({ summary: 'Return a count of records by opt' })
+  @OpenAPI({ summary: 'Return a count number of records by where' })
   @ResponseSchema(Number)
+  @UseBefore(validationMiddleware(RecordDto, 'query', ['find']))
   @Get('/count')
-  async count(@QueryParam('opt') opt?: FindOptionsWhere<Record>): Promise<number> {
-    const count = await this.recordRepository.countBy(opt);
+  async count(@QueryParams({ validate: false }) where?: RecordDto): Promise<number> {
+    const count = await this.recordRepository.countBy(where);
     return count;
   }
 
   @OpenAPI({ summary: 'Return a record by id' })
   @ResponseSchema(Record)
+  @UseBefore(validationMiddleware(RecordDto, 'params'))
   @Get('/:id')
-  async findById(@Param('id') id: number, @QueryParam('opt') opt?: FindOptionsWhere<Record>): Promise<Record> {
-    await this.recordRepository.existOneOrFail({ id });
-    const result = await this.recordRepository.findOne(Object.assign({ where: { id } }, opt));
+  async findById(@Params({ validate: false, required: true }) where: RecordDto): Promise<Record> {
+    await this.recordRepository.existOnlyOneOrFail(where);
+    const result = await this.recordRepository.findOneBy(where);
     return result;
   }
 
   @OpenAPI({ summary: 'Update a record by id' })
   @HttpCode(204)
-  @UseBefore(validationMiddleware(Record, 'body', ['update']))
+  @UseBefore(validationMiddleware(RecordDto, 'params'), validationMiddleware(RecordDto, 'body', ['update']))
   @Patch('/:id')
-  async updateById(@Param('id') id: number, @Body() body: Record): Promise<null> {
-    await this.recordRepository.existOneOrFail(id);
-    await this.recordRepository.update(id, body);
+  async updateById(
+    @Params({ validate: false, required: true }) where: RecordDto,
+    @Body({ validate: false, required: true }) body: RecordDto,
+  ): Promise<null> {
+    await this.recordRepository.existOnlyOneOrFail(where);
+    await this.recordRepository.update(where.id, body);
     return null;
   }
 
   @OpenAPI({ summary: 'Delete a record by id' })
   @HttpCode(204)
+  @UseBefore(validationMiddleware(RecordDto, 'params'))
   @Delete('/:id')
-  async deleteById(@Param('id') id: number): Promise<null> {
-    await this.recordRepository.delete(id);
+  async deleteById(@Params({ validate: false, required: true }) where: RecordDto): Promise<null> {
+    await this.recordRepository.delete(where.id);
     return null;
   }
 
-  @OpenAPI({ summary: 'Update a record' })
+  @OpenAPI({ summary: 'Update a record by where' })
   @HttpCode(204)
-  @UseBefore(validationMiddleware(Record, 'body', ['update']))
+  @UseBefore(validationMiddleware(RecordDto, 'query', ['find']), validationMiddleware(RecordDto, 'body', ['update']))
   @Patch('/')
-  async update(@QueryParam('opt') opt: FindOptionsWhere<Record>, @Body() body: Record): Promise<null> {
-    await this.recordRepository.existOneOrFail(opt);
-    await this.recordRepository.update(opt, body);
+  async update(
+    @QueryParams({ validate: false }) where: RecordDto,
+    @Body({ validate: false, required: true }) body: RecordDto,
+  ): Promise<null> {
+    await this.recordRepository.existOnlyOneOrFail(where);
+    await this.recordRepository.update(where, body);
     return null;
   }
 
   @OpenAPI({ summary: 'Create a record' })
   @HttpCode(201)
-  @UseBefore(validationMiddleware(Record, 'body', ['create']))
+  @ResponseSchema(String)
+  @UseBefore(validationMiddleware(RecordDto, 'body', ['create']))
   @Post('/')
-  async create(@Body() body: Record): Promise<unknown> {
+  async create(@Body({ validate: false, required: true }) body: RecordDto): Promise<string> {
     await this.recordRepository.insert(body);
-    return '';
+    return 'OK';
   }
 
-  @OpenAPI({ summary: 'Upsert a record' })
+  @OpenAPI({ summary: 'Upsert records' })
   @HttpCode(204)
-  @UseBefore(validationMiddleware(Record, 'body', ['upsert']))
+  @UseBefore(validationMiddleware(RecordDto, 'body', ['upsert']))
   @Post('/upsert')
-  async upsert(@Body() body: Record[]): Promise<null> {
+  async upsert(@Body({ validate: false, required: true }) body: RecordDto[]): Promise<null> {
     await this.recordRepository.save(body);
     return null;
   }
 
   // 下方仅是模拟业务需要
 
-  @OpenAPI({ summary: 'Return a list of records by dto' })
-  @ResponseSchema(Record, {
-    isArray: true,
-  })
+  @OpenAPI({ summary: 'Return a list of records by like' })
+  @ResponseSchema(Record, { isArray: true })
   @UseBefore(validationMiddleware(GetRecordsTestDto, 'query'))
-  @Get('/getByLike')
-  async getByLike(@QueryParams() queryParams: GetRecordsTestDto): Promise<Record[]> {
+  @Post('/getByLike')
+  async getByLike(@QueryParams({ validate: false }) queryParams: GetRecordsTestDto): Promise<Record[]> {
     return this.recordService.getByLike(queryParams);
   }
 
   @OpenAPI({ summary: 'Delete a record and create a record' })
-  @UseBefore(validationMiddleware(Record, 'body', ['create']))
+  @ResponseSchema(String)
+  @UseBefore(
+    validationMiddleware(RecordDto, 'params', ['findById']),
+    validationMiddleware(RecordDto, 'body', ['create']),
+  )
   @Post('/deleteAndCreate/:id')
-  async deleteAndCreate(@Param('id') id: number, @Body() body: Record): Promise<string> {
-    await this.recordService.deleteAndCreate(id, body);
-    return 'Success';
+  async deleteAndCreate(
+    @Params({ validate: false, required: true }) where: RecordDto,
+    @Body({ validate: false, required: true }) body: RecordDto,
+  ): Promise<string> {
+    await this.recordService.deleteAndCreate(where.id, body);
+    return 'OK';
   }
 }

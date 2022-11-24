@@ -10,11 +10,17 @@ const tokenConstant: TokenConstant = {
   ALGORITHM: appConfig.jwt.algorithm as jwt.Algorithm,
 };
 const jwtPlugin = new JWTPlugin(tokenConstant);
-if (appConfig.debug) console.log(jwtPlugin.sign({ user: 'hxy' }));
+let token: string;
+if (appConfig.debug) {
+  token = jwtPlugin.sign({ user: 'hxy' });
+  console.log(token);
+}
 
 export const authMiddleware = (req: Request, _res: Response, next: NextFunction) => {
   try {
     let authorization = req.headers.authorization;
+    // // 本地测试使用 请不要放在正式环境
+    // let authorization = token;
     if (!authorization) {
       throw new HttpException(401, 'Authorization not found in request header!');
     }

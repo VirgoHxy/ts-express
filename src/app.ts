@@ -90,7 +90,7 @@ export default class App {
     this.app.use(express.urlencoded({ extended: true }));
     // req.cookies
     this.app.use(cookieParser());
-    // 统一成功响应体
+    // 统一成功响应体 在控制器中定义
     // this.app.use(resultMiddleware);
   }
 
@@ -127,13 +127,16 @@ export default class App {
       components: {
         schemas,
         securitySchemes: {
-          basicAuth: {
-            scheme: 'basic',
-            type: 'http',
+          bearerAuth: {
+            type: 'apiKey',
+            scheme: 'bearer',
+            in: 'header',
+            name: 'Authorization',
           },
         },
       },
-      servers: [{ url: `http://[::1]:${appConfig.port}/` }],
+      security: [{ bearerAuth: [] }],
+      servers: [{ url: `http://127.0.0.1:${appConfig.port}/` }],
     });
     writeFile(path.resolve(__dirname, '../public/openapi.json'), JSON.stringify(spec), error => {
       if (error) {

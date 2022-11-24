@@ -1,15 +1,50 @@
 import { HttpException } from '@others';
-import { mysqlDataSource } from 'datasources';
-import { Service } from 'typedi';
 import { DataSource, EntityManager, EntityTarget, FindOptionsWhere, QueryRunner, Repository } from 'typeorm';
 import { IsolationLevel } from 'typeorm/driver/types/IsolationLevel';
-import { Record } from '../entities';
 
-class CustomEntityManager<T> extends EntityManager {
+export class CustomEntityManager<T> extends EntityManager {
   constructor(private entityClass: EntityTarget<T>, dataSource: DataSource, queryRunner?: QueryRunner) {
     super(dataSource, queryRunner);
   }
 
+  /**
+   * 是否只存在一个实体
+   */
+  async existOnlyOne(opt: string | number | FindOptionsWhere<T>): Promise<boolean> {
+    let option: FindOptionsWhere<T>;
+    if (typeof opt === 'string' || typeof opt === 'number') {
+      option = {
+        id: opt,
+      } as unknown as FindOptionsWhere<T>;
+    } else {
+      option = opt;
+    }
+    const number = await this.countBy(this.entityClass, option);
+    return number !== 1;
+  }
+
+  /**
+   * 是否只存在一个实体，不存在则报错
+   */
+  async existOnlyOneOrFail(opt: string | number | FindOptionsWhere<T>): Promise<boolean> {
+    let option: FindOptionsWhere<T>;
+    if (typeof opt === 'string' || typeof opt === 'number') {
+      option = {
+        id: opt,
+      } as unknown as FindOptionsWhere<T>;
+    } else {
+      option = opt;
+    }
+    const number = await this.countBy(this.entityClass, option);
+    if (number !== 1) {
+      throw new HttpException(404, 'could not find only one entity');
+    }
+    return true;
+  }
+
+  /**
+   * 是否至少存在一个实体
+   */
   async existOne(opt: string | number | FindOptionsWhere<T>): Promise<boolean> {
     let option: FindOptionsWhere<T>;
     if (typeof opt === 'string' || typeof opt === 'number') {
@@ -23,6 +58,9 @@ class CustomEntityManager<T> extends EntityManager {
     return number !== 0;
   }
 
+  /**
+   * 是否至少存在一个实体，不存在则报错
+   */
   async existOneOrFail(opt: string | number | FindOptionsWhere<T>): Promise<boolean> {
     let option: FindOptionsWhere<T>;
     if (typeof opt === 'string' || typeof opt === 'number') {
@@ -40,7 +78,7 @@ class CustomEntityManager<T> extends EntityManager {
   }
 }
 
-class CustomRepository<T> extends Repository<T> {
+export class CustomRepository<T> extends Repository<T> {
   transactionQueryRunner: QueryRunner;
   transactionManager: CustomEntityManager<T>;
   manager: CustomEntityManager<T>;
@@ -95,24 +133,34 @@ class CustomRepository<T> extends Repository<T> {
     }
   }
 
+  /**
+   * 是否只存在一个实体
+   */
+  async existOnlyOne(opt: string | number | FindOptionsWhere<T>): Promise<boolean> {
+    return this.manager.existOnlyOne(opt);
+  }
+
+  /**
+   * 是否只存在一个实体，不存在则报错
+   */
+  async existOnlyOneOrFail(opt: string | number | FindOptionsWhere<T>): Promise<boolean> {
+    return this.manager.existOnlyOneOrFail(opt);
+  }
+
+  /**
+   * 是否至少存在一个实体
+   */
   async existOne(opt: string | number | FindOptionsWhere<T>): Promise<boolean> {
     return this.manager.existOne(opt);
   }
 
+  /**
+   * 是否至少存在一个实体，不存在则报错
+   */
   async existOneOrFail(opt: string | number | FindOptionsWhere<T>): Promise<boolean> {
     return this.manager.existOneOrFail(opt);
   }
 }
 
-class MysqlCustomRepository<T> extends CustomRepository<T> {
-  constructor(entityClass: EntityTarget<T>) {
-    super(entityClass, mysqlDataSource);
-  }
-}
-
-@Service()
-export class RecordRepository extends MysqlCustomRepository<Record> {
-  constructor() {
-    super(Record);
-  }
-}
+// 必须放在上面两个export的下方
+export * from './mysql.repository';

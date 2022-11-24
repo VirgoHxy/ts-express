@@ -1,11 +1,15 @@
-import { IsDate, IsEmpty, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
+import { IsDate, IsInt, IsString } from 'class-validator';
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { RecordDto } from '../dtos';
 
 @Entity()
 export class Record {
+  constructor(data: RecordDto) {
+    return plainToInstance(Record, data);
+  }
+
   @PrimaryGeneratedColumn()
-  @IsEmpty({ groups: ['update'] })
-  @IsOptional({ groups: ['update', 'upsert'] }) // 在update和upsert 如果缺失这个值 就忽略其他验证
   @IsInt()
   id: number;
 
@@ -15,8 +19,6 @@ export class Record {
     comment: '名称',
     nullable: false,
   })
-  @IsNotEmpty({ groups: ['create'] })
-  @IsOptional({ groups: ['update', 'upsert'] })
   @IsString()
   name: string;
 
@@ -26,8 +28,6 @@ export class Record {
     comment: '记录内容',
     nullable: false,
   })
-  @IsNotEmpty({ groups: ['create'] })
-  @IsOptional({ groups: ['update', 'upsert'] })
   @IsString()
   content: string;
 
@@ -37,7 +37,6 @@ export class Record {
     comment: '位置',
     nullable: true,
   })
-  @IsOptional({ groups: ['update', 'upsert'] })
   @IsString()
   location?: string;
 
@@ -48,8 +47,6 @@ export class Record {
     nullable: false,
     precision: 0,
   })
-  @IsEmpty()
-  @IsOptional()
   @IsDate()
   createTime: string;
 
@@ -60,8 +57,6 @@ export class Record {
     nullable: false,
     precision: 0,
   })
-  @IsEmpty()
-  @IsOptional()
   @IsDate()
   updateTime: string;
 }

@@ -1,8 +1,7 @@
-import { GetRecordsTestDto } from 'dtos';
+import { GetRecordsTestDto, RecordDto } from 'dtos';
 import { Record } from 'entities';
 import { Service } from 'typedi';
-import { EntityManager } from 'typeorm';
-import { RecordRepository } from '../repositories';
+import { CustomEntityManager, RecordRepository } from '../repositories';
 
 @Service()
 export class RecordService {
@@ -14,8 +13,8 @@ export class RecordService {
     return builder.getMany();
   }
 
-  async deleteAndCreate(id: number, body: Record) {
-    await this.recordRepository.transaction(async (manager: EntityManager) => {
+  async deleteAndCreate(id: number, body: RecordDto) {
+    await this.recordRepository.transaction(async (manager: CustomEntityManager<Record>) => {
       await manager.insert(Record, body);
       await manager.delete(Record, id);
     });
