@@ -32,5 +32,5 @@
     }
   },
   "include": ["src/**/*.ts", "src/**/*.json"],
-  "exclude": ["node_modules", "src/test", "logs"]
+  "exclude": ["node_modules", "src/test", "logs", "sdk"]
 }
