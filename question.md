@@ -101,3 +101,4 @@
 - 基础模板 crud，以及事务处理 -- typeorm repository
 - 可以访问 openapi.json，用来生成 sdk
 - 后端 sdk -- 使用@openapitools/openapi-generator-cli
+- controller service entity repository dto 在 index.ts 导出等等模板写入，在 others 的 fs-template.ts 实现
