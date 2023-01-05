@@ -21,7 +21,7 @@ import { RecordService } from '../services';
 @JsonController('/records')
 @UseBefore(authMiddleware, resultMiddleware)
 export class RecordController {
-  constructor(@Service() private recordService: RecordService, @Service() private recordRepository: RecordRepository) {}
+  constructor(@Service() private recordRepository: RecordRepository, @Service() private recordService: RecordService) {}
 
   @OpenAPI({ summary: 'Return a list of records by opt' })
   @ResponseSchema(Record, { isArray: true })
