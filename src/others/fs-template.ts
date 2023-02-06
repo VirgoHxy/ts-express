@@ -97,7 +97,7 @@ export class ${upperModuleName} {
 export class ${upperModuleName}Dto {
   @IsEmpty({ groups: ['create', 'update'] })
   @NotEquals('', { groups: ['create', 'update'] })
-  @IsOptional({ groups: ['upsert', 'find'] }) // 在upsert,find生效 如果缺失这个值 就忽略其他验证
+  @IsOptional({ groups: ['upsert', 'find'] }) // 如果缺失这个值 就忽略其他验证
   @IsInt()
   id: number;
 

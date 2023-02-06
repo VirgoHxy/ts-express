@@ -79,6 +79,7 @@
 ## to-do list
 
 - 自定义复合型注解 -- 将重复注解进行解耦，一般是用于 controller 和 dto
+- 自定义注解来公开控制器方法，不用传递 token
 - 新建 shared 文件夹作为唯一单例文件注入使用
 - mock server
 - unit test 示例书写
